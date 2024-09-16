@@ -1,4 +1,4 @@
-name: Install Playwright Dependencies
+name: Test
 
 on:
   push:
@@ -18,5 +18,40 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Run Netdata
+        run: |
+          docker run -d --rm \
+            --name netdata \
+            --hostname node \
+            --pid host \
+            --network host \
+            --cap-add SYS_PTRACE \
+            --cap-add SYS_ADMIN \
+            --security-opt apparmor=unconfined \
+            -v /:/host/root:ro,rslave \
+            -v /etc/passwd:/host/etc/passwd:ro \
+            -v /etc/group:/host/etc/group:ro \
+            -v /etc/localtime:/etc/localtime:ro \
+            -v /proc:/host/proc:ro \
+            -v /sys:/host/sys:ro \
+            -v /etc/os-release:/host/etc/os-release:ro \
+            -v /var/log:/host/var/log:ro \
+            -v /var/run/docker.sock:/var/run/docker.sock:ro \
+            -v /run/dbus:/run/dbus:ro \
+            -v /tmp/z/netdata:/var/cache/netdata \
+            netdata/netdata
       - name: Install Playwright and dependencies
         run: pnpx playwright install --with-deps
+      - name: Download JSON from Netdata
+        run: |
+          curl -o netdata.json http://localhost:19999/api/v2/data?format=json
+      - name: Get database
+        run: |
+          docker cp netdata:/var/cache/netdata - | gzip > netdata_cache_backup.tar.gz
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: netdata
+          path: |
+            netdata.json
+            netdata_cache_backup.tar.gz
