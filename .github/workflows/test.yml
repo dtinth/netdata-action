@@ -25,7 +25,9 @@ jobs:
           destination = ${{ secrets.PROMETHEUS_REMOTE_WRITE_DESTINATION }}
           username = ${{ secrets.PROMETHEUS_REMOTE_WRITE_USERNAME }}
           password = ${{ secrets.PROMETHEUS_REMOTE_WRITE_PASSWORD }}
-          remote write URL path = /api/v1/write' > exporting.conf
+          remote write URL path = /api/v1/write
+          update every = 5
+          ' > exporting.conf
           docker run -d --rm \
             --name netdata \
             --hostname gha${{ github.repository_id }}-${{ github.run_id }}-${{ github.run_attempt }} \
