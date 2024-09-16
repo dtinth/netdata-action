@@ -48,3 +48,5 @@ jobs:
             netdata/netdata
       - name: Install Playwright and dependencies
         run: pnpx playwright install --with-deps
+      - name: Print netdata logs
+        run: docker logs netdata
