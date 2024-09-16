@@ -20,13 +20,15 @@ jobs:
           node-version: "22"
       - name: Run Netdata
         run: |
-          echo '[prometheus_remote_write:prom]
+          echo '[prometheus_remote_write:https:prom]
           enabled = yes
           destination = ${{ secrets.PROMETHEUS_REMOTE_WRITE_DESTINATION }}
+          username = ${{ secrets.PROMETHEUS_REMOTE_WRITE_USERNAME }}
+          password = ${{ secrets.PROMETHEUS_REMOTE_WRITE_PASSWORD }}
           remote write URL path = /api/v1/write' > exporting.conf
           docker run -d --rm \
             --name netdata \
-            --hostname node \
+            --hostname gha${{ github.repository_id }}-${{ github.run_id }}-${{ github.run_attempt }} \
             --pid host \
             --network host \
             --cap-add SYS_PTRACE \
