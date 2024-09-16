@@ -20,7 +20,7 @@ jobs:
           node-version: "22"
       - name: Run Netdata
         run: |
-          echo '[prometheus_remote_write:https:prom]
+          echo '[prometheus_remote_write:prom]
           enabled = yes
           destination = ${{ secrets.PROMETHEUS_REMOTE_WRITE_DESTINATION }}
           username = ${{ secrets.PROMETHEUS_REMOTE_WRITE_USERNAME }}
