@@ -20,6 +20,10 @@ jobs:
           node-version: "22"
       - name: Run Netdata
         run: |
+          echo '[prometheus_remote_write:prom]
+          enabled = yes
+          destination = ${{ secrets.PROMETHEUS_REMOTE_WRITE_DESTINATION }}
+          remote write URL path = /api/v1/write' > exporting.conf
           docker run -d --rm \
             --name netdata \
             --hostname node \
@@ -38,6 +42,7 @@ jobs:
             -v /var/log:/host/var/log:ro \
             -v /var/run/docker.sock:/var/run/docker.sock:ro \
             -v /run/dbus:/run/dbus:ro \
+            -v $PWD/exporting.conf:/etc/netdata/exporting.conf:ro \
             netdata/netdata
       - name: Record after time
         run: node -p "Math.floor(new Date().getTime() / 1000) * 1000" > /tmp/netdata_after
