@@ -38,20 +38,19 @@ jobs:
             -v /var/log:/host/var/log:ro \
             -v /var/run/docker.sock:/var/run/docker.sock:ro \
             -v /run/dbus:/run/dbus:ro \
-            -v /tmp/z/netdata:/var/cache/netdata \
             netdata/netdata
+      - name: Record after time
+        run: node -p "Math.floor(new Date().getTime() / 1000) * 1000" > /tmp/netdata_after
       - name: Install Playwright and dependencies
         run: pnpx playwright install --with-deps
+      - name: Record before time
+        run: node -p "Math.ceil(new Date().getTime() / 1000) * 1000" > /tmp/netdata_before
       - name: Download JSON from Netdata
         run: |
-          curl -o netdata.json http://localhost:19999/api/v2/data?format=json
-      - name: Get database
-        run: |
-          docker cp netdata:/var/cache/netdata - | gzip > netdata_cache_backup.tar.gz
+          curl -o netdata.json http://localhost:19999/api/v2/data?format=json&group_by=instance
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: netdata
           path: |
             netdata.json
-            netdata_cache_backup.tar.gz
