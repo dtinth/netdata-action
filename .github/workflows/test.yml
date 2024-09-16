@@ -47,7 +47,9 @@ jobs:
         run: node -p "Math.ceil(new Date().getTime() / 1000) * 1000" > /tmp/netdata_before
       - name: Download JSON from Netdata
         run: |
-          curl -o netdata.json 'http://localhost:19999/api/v2/data?format=json&group_by=instance'
+          before="$(cat /tmp/netdata_before)"
+          after="$(cat /tmp/netdata_after)"
+          curl -o netdata.json "http://localhost:19999/api/v2/data?format=json&group_by=instance&after=$after&before=$before"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
