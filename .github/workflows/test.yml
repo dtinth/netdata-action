@@ -46,9 +46,5 @@ jobs:
             -v /run/dbus:/run/dbus:ro \
             -v $PWD/exporting.conf:/etc/netdata/exporting.conf:ro \
             netdata/netdata
-      - name: Record after time
-        run: node -p "Math.floor(new Date().getTime() / 1000) * 1000" > /tmp/netdata_after
       - name: Install Playwright and dependencies
         run: pnpx playwright install --with-deps
-      - name: Record before time
-        run: node -p "Math.ceil(new Date().getTime() / 1000) * 1000" > /tmp/netdata_before
