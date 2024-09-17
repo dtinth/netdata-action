@@ -3,11 +3,11 @@
 > [!CAUTION]
 > This action is a work in progress.
 
-This action sets up [netdata](https://github.com/netdata/netdata) to send metrics to a [Prometheus server](https://github.com/prometheus/prometheus) via the [Prometheus remote write API](https://learn.netdata.cloud/docs/exporting-metrics/prometheus-remote-write) while GitHub Actions is running. This gives you detailed visibility into the performance of your GitHub Actions workflows, which can be helpful optimizing your workflow performance.
+**Your CI workflow can be slow because of many reasons.** Maybe we ran out of CPU power, or maybe the CPU is underutilized due to incorrect config, or maybe it’s idle waiting for IO. Maybe there is a lot of page faults, or maybe the network or disk I/O is the bottleneck. This action sets up [netdata](https://github.com/netdata/netdata) to send detailed system performance metrics to a [Prometheus server](https://github.com/prometheus/prometheus) via the [Prometheus remote write API](https://learn.netdata.cloud/docs/exporting-metrics/prometheus-remote-write) while GitHub Actions is running. This gives you detailed visibility into the performance of your GitHub Actions workflows, which can be helpful optimizing your workflow performance.
 
 ![image](https://github.com/user-attachments/assets/14dd94f1-8c12-41ff-8ce2-f3e8d7d7a32f)
 
-In this example, the application server consumes only 2 CPUs out of 4. Further digging shows that our E2E test setup only runs 2 instance of the application server. We can increase the number of instances to 4 to better utilize the available resources and make tests run faster.
+In this example, the application server consumes only 2 CPUs out of 4. Total CPU utilization is around 75%. Further digging shows that our E2E test setup only runs 2 instance of the application server. We can increase the number of instances to 4 to better utilize the available resources and make tests run faster. We can also slightly increase the number of workers in Playwright to get CPU utilization closer to 90%.
 
 Without any configuration, Netdata automatically tracks hundreds of metrics about your system's performance. Here are some metrics we find useful:
 
