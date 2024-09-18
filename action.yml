@@ -20,11 +20,11 @@ runs:
     - name: Start netdata
       id: netdata
       run: |
-        hostid=$(openssl rand -hex 4)
+        hostid="gha${{ github.repository_id }}-${{ github.run_id }}-${{ github.run_attempt }}-$(openssl rand -hex 4)"
         echo "hostid=$hostid" | tee -a "$GITHUB_OUTPUT"
         docker run -d --rm \
           --name netdata \
-          --hostname gha${{ github.repository_id }}-${{ github.run_id }}-${{ github.run_attempt }}-$hostid \
+          --hostname "$hostid" \
           --pid host \
           --network host \
           --cap-add SYS_PTRACE \
