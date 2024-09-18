@@ -1,0 +1,45 @@
+name: Netdata
+description: Runs Netdata to collect performance metrics during the test run
+inputs:
+  exporting-config:
+    required: true
+    description: Contents of netdata/exporting.conf
+outputs:
+  host-id:
+    description: The randomly-generated host ID
+    value: ${{ steps.netdata.outputs.hostid }}
+runs:
+  using: "composite"
+  steps:
+    - name: Write configuration
+      env:
+        EXPORTING_CONFIG: ${{ inputs.exporting-config }}
+      run: |
+        echo "$EXPORTING_CONFIG" > $RUNNER_TEMP/netdata_exporting.conf
+      shell: bash
+    - name: Start netdata
+      id: netdata
+      run: |
+        hostid=$(openssl rand -hex 4)
+        echo "hostid=$hostid" | tee -a "$GITHUB_OUTPUT"
+        docker run -d --rm \
+          --name netdata \
+          --hostname gha${{ github.repository_id }}-${{ github.run_id }}-${{ github.run_attempt }}-$hostid \
+          --pid host \
+          --network host \
+          --cap-add SYS_PTRACE \
+          --cap-add SYS_ADMIN \
+          --security-opt apparmor=unconfined \
+          -v /:/host/root:ro,rslave \
+          -v /etc/passwd:/host/etc/passwd:ro \
+          -v /etc/group:/host/etc/group:ro \
+          -v /etc/localtime:/etc/localtime:ro \
+          -v /proc:/host/proc:ro \
+          -v /sys:/host/sys:ro \
+          -v /etc/os-release:/host/etc/os-release:ro \
+          -v /var/log:/host/var/log:ro \
+          -v /var/run/docker.sock:/var/run/docker.sock:ro \
+          -v /run/dbus:/run/dbus:ro \
+          -v $RUNNER_TEMP/netdata_exporting.conf:/etc/netdata/exporting.conf:ro \
+          netdata/netdata
+      shell: bash

@@ -11,6 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Run Caddy to proxy Prometheus
+        run: |
+          docker run -d --name promproxy -p 9090:9090 caddy caddy reverse-proxy --from :9090 --to https://${{ secrets.PROMETHEUS_REMOTE_WRITE_DESTINATION }} --change-host-header
+      - name: Run Netdata
+        uses: .
+        with:
+          exporting-config: |
+            [prometheus_remote_write:prom]
+            enabled = yes
+            destination = 127.0.0.1:9090
+            username = ${{ secrets.PROMETHEUS_REMOTE_WRITE_USERNAME }}
+            password = ${{ secrets.PROMETHEUS_REMOTE_WRITE_PASSWORD }}
+            remote write URL path = /api/v1/write
+            update every = 5
+
       - uses: pnpm/action-setup@v4
         with:
           version: 9
@@ -18,37 +33,5 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Run Netdata
-        run: |
-          echo '[prometheus_remote_write:prom]
-          enabled = yes
-          destination = ${{ secrets.PROMETHEUS_REMOTE_WRITE_DESTINATION }}
-          username = ${{ secrets.PROMETHEUS_REMOTE_WRITE_USERNAME }}
-          password = ${{ secrets.PROMETHEUS_REMOTE_WRITE_PASSWORD }}
-          remote write URL path = /api/v1/write
-          update every = 5
-          ' > exporting.conf
-          docker run -d --rm \
-            --name netdata \
-            --hostname gha${{ github.repository_id }}-${{ github.run_id }}-${{ github.run_attempt }} \
-            --pid host \
-            --network host \
-            --cap-add SYS_PTRACE \
-            --cap-add SYS_ADMIN \
-            --security-opt apparmor=unconfined \
-            -v /:/host/root:ro,rslave \
-            -v /etc/passwd:/host/etc/passwd:ro \
-            -v /etc/group:/host/etc/group:ro \
-            -v /etc/localtime:/etc/localtime:ro \
-            -v /proc:/host/proc:ro \
-            -v /sys:/host/sys:ro \
-            -v /etc/os-release:/host/etc/os-release:ro \
-            -v /var/log:/host/var/log:ro \
-            -v /var/run/docker.sock:/var/run/docker.sock:ro \
-            -v /run/dbus:/run/dbus:ro \
-            -v $PWD/exporting.conf:/etc/netdata/exporting.conf:ro \
-            netdata/netdata
       - name: Install Playwright and dependencies
         run: pnpx playwright install --with-deps
-      - name: Print netdata logs
-        run: docker logs netdata
