@@ -15,7 +15,7 @@ jobs:
         run: |
           docker run -d --name promproxy -p 9090:9090 caddy caddy reverse-proxy --from :9090 --to https://${{ secrets.PROMETHEUS_REMOTE_WRITE_DESTINATION }} --change-host-header
       - name: Run Netdata
-        uses: .
+        uses: ./
         with:
           exporting-config: |
             [prometheus_remote_write:prom]
