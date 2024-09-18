@@ -22,3 +22,42 @@ Without any configuration, Netdata automatically tracks hundreds of metrics abou
 | `system_load_load` | System load average over 1, 5, and 15 minutes. |
 
 It also tracks metrics about your network, disk, and more.
+
+Here's a usage documentation based on the provided test.yml file:
+
+## Usage
+
+To use the `eventpop/netdata-action` in your GitHub Actions workflow, add the action to your workflow file:
+
+```yaml
+- name: Run Netdata
+  uses: eventpop/netdata-action@main
+  with:
+    exporting-config: |
+      [prometheus_remote_write:prom]
+      enabled = yes
+      destination = <prometheus-ip>:9090
+      username = <username>
+      password = ${{ secrets.PROMETHEUS_REMOTE_WRITE_PASSWORD }}
+      remote write URL path = /api/v1/write
+      update every = 5
+```
+
+Replace the placeholders and set up the secrets as needed.
+
+If your Prometheus server uses HTTPS and you’re unable to connect directly, you can use Caddy as a reverse proxy by adding the following step before the Netdata action:
+
+```yaml
+- name: Run Caddy to proxy Prometheus
+  run: |
+    docker run -d \
+      --name promproxy \
+      -p 9090:9090 \
+      caddy \
+      caddy reverse-proxy \
+        --from :9090 \
+        --to https://your-prometheus-server \
+        --change-host-header
+```
+
+In this case, set `<prometheus-ip>` to `127.0.0.1` in the Netdata configuration.
